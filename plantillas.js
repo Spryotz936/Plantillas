@@ -3,17 +3,22 @@ const { jsPDF } = window.jspdf;
 const TOTAL = 54;
 let imagenes = [];
 
-// 📥 Cargar imágenes
+// 📥 Cargar imágenes (RUTA CORREGIDA)
 function cargarImagenes() {
   let promesas = [];
 
   for (let i = 1; i <= TOTAL; i++) {
     promesas.push(new Promise(resolve => {
       let img = new Image();
-      img.src = `imagenes/${i}.jpg`;
+
+      // 🔥 IMPORTANTE: subir un nivel porque estás en /Plantillas/
+      img.src = `../imagenes/${i}.jpg`;
 
       img.onload = () => resolve(img);
-      img.onerror = () => resolve(null);
+      img.onerror = () => {
+        console.error("Error cargando imagen:", img.src);
+        resolve(null);
+      };
     }));
   }
 
@@ -22,12 +27,16 @@ function cargarImagenes() {
   });
 }
 
-// 🚀 GENERAR
+// 🚀 GENERAR PDF
 async function generarPlantilla() {
+
+  console.log("Iniciando generación...");
 
   await cargarImagenes();
 
-  // ✅ VALIDACIÓN 54 CARTAS
+  console.log("Imágenes cargadas:", imagenes.length);
+
+  // ✅ VALIDACIÓN
   if (imagenes.length !== 54) {
     alert("Error: deben existir exactamente 54 imágenes.");
     return;
@@ -49,7 +58,7 @@ async function generarPlantilla() {
   let anchoTotal = anchoCm * 10;
   let altoTotal = altoCm * 10;
 
-  // 🚫 CONTROL DE LÍMITE DE HOJA
+  // 🚫 AJUSTE SI EXCEDE HOJA
   if (anchoTotal > pageW || altoTotal > pageH) {
 
     let escala = Math.min(pageW / anchoTotal, pageH / altoTotal);
@@ -60,11 +69,10 @@ async function generarPlantilla() {
     alert("El tamaño excedía la hoja. Se ajustó automáticamente.");
   }
 
-  // 🧩 GRID 9x6
+  // 🧩 GRID
   let cols = 9;
   let rows = 6;
 
-  // ❌ SIN ESPACIOS
   let cartaW = anchoTotal / cols;
   let cartaH = altoTotal / rows;
 
@@ -87,6 +95,8 @@ async function generarPlantilla() {
     doc.setDrawColor(0);
     doc.rect(x, y, cartaW, cartaH);
   }
+
+  console.log("Generando PDF...");
 
   doc.save("plantilla_54_cartas.pdf");
 }
