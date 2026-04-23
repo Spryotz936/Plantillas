@@ -75,8 +75,8 @@ async function generarPlantilla() {
   }
 
   // 🧩 GRID OPTIMIZADO PARA HORIZONTAL
-  let cols = 6;
-  let rows = 9;
+  let cols = 9;
+  let rows = 6;
 
   let cartaW = anchoTotal / cols;
   let cartaH = altoTotal / rows;
