@@ -82,24 +82,26 @@ async function generarPlantilla() {
   let cartaH = altoTotal / rows;
 
   // 📍 CENTRADO
-  let offsetX = (pageW - anchoTotal) / 2;
-  let offsetY = (pageH - altoTotal) / 2;
+let offsetX = (pageW - anchoTotal) / 2;
+let offsetY = (pageH - altoTotal) / 2;
 
-  // 🖼️ DIBUJAR
-  for (let i = 0; i < 54; i++) {
+// 🖼️ DIBUJAR (9x6 REAL)
+let index = 0;
 
-    let fila = i % cols;
-    let col = Math.floor(i / cols);
+for (let fila = 0; fila < rows; fila++) {
+  for (let col = 0; col < cols; col++) {
 
     let x = offsetX + col * cartaW;
     let y = offsetY + fila * cartaH;
 
-    doc.addImage(imagenes[i], "JPEG", x, y, cartaW, cartaH);
+    doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
 
-    // 🔲 CONTORNO
     doc.setDrawColor(0);
     doc.rect(x, y, cartaW, cartaH);
+
+    index++;
   }
+}
 
   console.log("Generando PDF...");
 
