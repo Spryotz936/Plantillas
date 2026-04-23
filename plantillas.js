@@ -99,4 +99,6 @@ async function generarPlantilla() {
   console.log("Generando PDF...");
 
   doc.save("plantilla_54_cartas.pdf");
+  
+window.generarPlantilla = generarPlantilla;
 }
