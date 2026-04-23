@@ -88,8 +88,8 @@ async function generarPlantilla() {
   // 🖼️ DIBUJAR
   for (let i = 0; i < 54; i++) {
 
-    let col = i % cols;
-    let fila = Math.floor(i / cols);
+    let fila = i % cols;
+    let col = Math.floor(i / cols);
 
     let x = offsetX + col * cartaW;
     let y = offsetY + fila * cartaH;
