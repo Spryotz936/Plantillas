@@ -103,3 +103,7 @@ async function generarPlantilla() {
 }
 
 window.generarPlantilla = generarPlantilla;
+
+document.addEventListener("DOMContentLoaded", () => {
+  document.getElementById("btnPDF").addEventListener("click", generarPlantilla);
+});
