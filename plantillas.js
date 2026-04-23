@@ -100,5 +100,6 @@ async function generarPlantilla() {
 
   doc.save("plantilla_54_cartas.pdf");
   
-window.generarPlantilla = generarPlantilla;
 }
+
+window.generarPlantilla = generarPlantilla;
