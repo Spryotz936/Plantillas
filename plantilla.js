@@ -41,7 +41,7 @@ async function generarPlantilla() {
   }
 
   const doc = new jsPDF({
-    orientation: "portrait",
+    orientation: "landscape",
     unit: "mm",
     format: "letter"
   });
