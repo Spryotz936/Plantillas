@@ -46,20 +46,20 @@ async function generarPlantilla() {
     format: "letter"
   });
 
-  const pageW = doc.internal.pageSize.getWidth();
-  const pageH = doc.internal.pageSize.getHeight();
+  const pageW = doc.internal.pageSize.getHeight();
+  const pageH = doc.internal.pageSize.getWidth();
 
   let anchoCm = parseFloat(document.getElementById("ancho").value);
   let altoCm = parseFloat(document.getElementById("alto").value);
 
-  let anchoTotal = anchoCm * 10;
-  let altoTotal = altoCm * 10;
+  let anchoTotal = altoCm * 10;
+  let altoTotal = anchoCm * 10;
 
   // Ajuste automático si excede hoja
-  if (anchoTotal > pageW || altoTotal > pageH) {
+  if (altoTotal > pageH || anchoTotal > pageW) {
     let escala = Math.min(pageW / anchoTotal, pageH / altoTotal);
-    anchoTotal *= escala;
     altoTotal *= escala;
+    anchoTotal *= escala;
     alert("El tamaño excedía la hoja. Se ajustó automáticamente.");
   }
 
