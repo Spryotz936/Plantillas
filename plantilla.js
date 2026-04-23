@@ -11,7 +11,7 @@ function cargarImagenes() {
     promesas.push(new Promise(resolve => {
       let img = new Image();
 
-      img.src = `../imagenes/${i}.jpg`;
+      img.src = `imagenes/${i}.jpg`;
 
       img.onload = () => resolve(img);
       img.onerror = () => {
