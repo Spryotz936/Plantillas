@@ -3,7 +3,7 @@ const { jsPDF } = window.jspdf;
 const TOTAL = 54;
 let imagenes = [];
 
-// 📥 Cargar imágenes (RUTA CORREGIDA)
+// 📥 Cargar imágenes
 function cargarImagenes() {
   let promesas = [];
 
@@ -11,7 +11,6 @@ function cargarImagenes() {
     promesas.push(new Promise(resolve => {
       let img = new Image();
 
-      // 🔥 IMPORTANTE: subir un nivel porque estás en /Plantillas/
       img.src = `../imagenes/${i}.jpg`;
 
       img.onload = () => resolve(img);
@@ -36,7 +35,6 @@ async function generarPlantilla() {
 
   console.log("Imágenes cargadas:", imagenes.length);
 
-  // ✅ VALIDACIÓN
   if (imagenes.length !== 54) {
     alert("Error: deben existir exactamente 54 imágenes.");
     return;
@@ -51,38 +49,30 @@ async function generarPlantilla() {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // 📏 INPUTS
   let anchoCm = parseFloat(document.getElementById("ancho").value);
   let altoCm = parseFloat(document.getElementById("alto").value);
 
   let anchoTotal = anchoCm * 10;
   let altoTotal = altoCm * 10;
 
-  // 🚫 AJUSTE SI EXCEDE HOJA
+  // Ajuste automático si excede hoja
   if (anchoTotal > pageW || altoTotal > pageH) {
-
     let escala = Math.min(pageW / anchoTotal, pageH / altoTotal);
-
     anchoTotal *= escala;
     altoTotal *= escala;
-
     alert("El tamaño excedía la hoja. Se ajustó automáticamente.");
   }
 
-  // 🧩 GRID
   let cols = 9;
   let rows = 6;
 
   let cartaW = anchoTotal / cols;
   let cartaH = altoTotal / rows;
 
-  // 📍 CENTRADO
   let offsetX = (pageW - anchoTotal) / 2;
   let offsetY = (pageH - altoTotal) / 2;
 
-  // 🖼️ DIBUJAR
   for (let i = 0; i < 54; i++) {
-
     let col = i % cols;
     let fila = Math.floor(i / cols);
 
@@ -91,7 +81,6 @@ async function generarPlantilla() {
 
     doc.addImage(imagenes[i], "JPEG", x, y, cartaW, cartaH);
 
-    // 🔲 CONTORNO
     doc.setDrawColor(0);
     doc.rect(x, y, cartaW, cartaH);
   }
@@ -99,11 +88,9 @@ async function generarPlantilla() {
   console.log("Generando PDF...");
 
   doc.save("plantilla_54_cartas.pdf");
-  
 }
 
-window.generarPlantilla = generarPlantilla;
-
+// ✅ EVENTO (SIN onclick)
 document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("btnPDF").addEventListener("click", generarPlantilla);
 });
