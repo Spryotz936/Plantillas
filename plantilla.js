@@ -25,6 +25,30 @@ function cargarImagenes() {
   });
 }
 
+// 🧠 Calcular mejor orientación considerando separación
+function calcularMejorOrientacion(anchoLam, altoLam, separacion, margen) {
+
+  // 📄 Portrait
+  let pw = 216 - margen * 2;
+  let ph = 279 - margen * 2;
+
+  let colsP = Math.floor((pw + separacion) / (anchoLam + separacion));
+  let rowsP = Math.floor((ph + separacion) / (altoLam + separacion));
+  let totalP = colsP * rowsP;
+
+  // 📄 Landscape
+  let lw = 279 - margen * 2;
+  let lh = 216 - margen * 2;
+
+  let colsL = Math.floor((lw + separacion) / (anchoLam + separacion));
+  let rowsL = Math.floor((lh + separacion) / (altoLam + separacion));
+  let totalL = colsL * rowsL;
+
+  return (totalL > totalP)
+    ? { orientacion: "landscape", cols: colsL, rows: rowsL, total: totalL }
+    : { orientacion: "portrait", cols: colsP, rows: rowsP, total: totalP };
+}
+
 // 🚀 GENERAR PDF
 async function generarPlantilla() {
 
@@ -39,14 +63,18 @@ async function generarPlantilla() {
   let cantidad = parseInt(document.getElementById("cantidad").value);
   let anchoCm = parseFloat(document.getElementById("ancho").value);
   let altoCm = parseFloat(document.getElementById("alto").value);
-  let orientacion = document.getElementById("orientacion").value;
 
   let anchoLam = anchoCm * 10;
   let altoLam = altoCm * 10;
 
-  // 📄 CREAR PDF DINÁMICO
+  const margen = 3;
+  const separacion = 3;
+
+  // 🧠 Elegir mejor orientación
+  let mejor = calcularMejorOrientacion(anchoLam, altoLam, separacion, margen);
+
   const doc = new jsPDF({
-    orientation: orientacion,
+    orientation: mejor.orientacion,
     unit: "mm",
     format: "letter"
   });
@@ -54,16 +82,8 @@ async function generarPlantilla() {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // 📐 MÁRGENES (3 mm)
-  const margen = 3;
-const separacion = 3; // 🔥 NUEVO
-
-  const maxW = pageW - margen * 2;
-  const maxH = pageH - margen * 2;
-
-  // 🧠 CUÁNTAS LÁMINAS CABEN POR HOJA
-  let colsHoja = Math.floor(maxW / anchoLam);
-  let rowsHoja = Math.floor(maxH / altoLam);
+  let colsHoja = mejor.cols;
+  let rowsHoja = mejor.rows;
 
   if (colsHoja === 0 || rowsHoja === 0) {
     alert("La lámina es demasiado grande para la hoja.");
@@ -72,8 +92,7 @@ const separacion = 3; // 🔥 NUEVO
 
   let laminasPorHoja = colsHoja * rowsHoja;
 
-  // 🧾 DEBUG (puedes quitar después)
-  console.log("Orientación:", orientacion);
+  console.log("Orientación:", mejor.orientacion);
   console.log("Columnas:", colsHoja);
   console.log("Filas:", rowsHoja);
   console.log("Por hoja:", laminasPorHoja);
@@ -84,9 +103,9 @@ const separacion = 3; // 🔥 NUEVO
 
     let usadas = Math.min(laminasPorHoja, cantidad - laminaActual);
 
-    // 📍 CENTRADO
-    let anchoUsado = colsHoja * anchoLam;
-    let altoUsado = rowsHoja * altoLam;
+    // 📍 Área usada (incluye separación)
+    let anchoUsado = colsHoja * anchoLam + (colsHoja - 1) * separacion;
+    let altoUsado = rowsHoja * altoLam + (rowsHoja - 1) * separacion;
 
     let offsetX = (pageW - anchoUsado) / 2;
     let offsetY = (pageH - altoUsado) / 2;
@@ -96,10 +115,10 @@ const separacion = 3; // 🔥 NUEVO
       let col = i % colsHoja;
       let fila = Math.floor(i / colsHoja);
 
-      let baseX = offsetX + col * anchoLam;
-      let baseY = offsetY + fila * altoLam;
+      let baseX = offsetX + col * (anchoLam + separacion);
+      let baseY = offsetY + fila * (altoLam + separacion);
 
-      // 🧩 GRID INTERNO (9x6)
+      // 🧩 GRID INTERNO 9x6
       let cols = 9;
       let rows = 6;
 
@@ -116,7 +135,7 @@ const separacion = 3; // 🔥 NUEVO
 
           doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
 
-          // 🔲 contorno
+          // contorno
           doc.setDrawColor(0);
           doc.rect(x, y, cartaW, cartaH);
 
