@@ -39,12 +39,14 @@ async function generarPlantilla() {
   let cantidad = parseInt(document.getElementById("cantidad").value);
   let anchoCm = parseFloat(document.getElementById("ancho").value);
   let altoCm = parseFloat(document.getElementById("alto").value);
+  let orientacion = document.getElementById("orientacion").value;
 
   let anchoLam = anchoCm * 10;
   let altoLam = altoCm * 10;
 
+  // 📄 CREAR PDF DINÁMICO
   const doc = new jsPDF({
-    orientation: "landscape",
+    orientation: orientacion,
     unit: "mm",
     format: "letter"
   });
@@ -52,7 +54,8 @@ async function generarPlantilla() {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  const margen = 5;
+  // 📐 MÁRGENES (3 mm)
+  const margen = 3;
 
   const maxW = pageW - margen * 2;
   const maxH = pageH - margen * 2;
@@ -68,13 +71,19 @@ async function generarPlantilla() {
 
   let laminasPorHoja = colsHoja * rowsHoja;
 
+  // 🧾 DEBUG (puedes quitar después)
+  console.log("Orientación:", orientacion);
+  console.log("Columnas:", colsHoja);
+  console.log("Filas:", rowsHoja);
+  console.log("Por hoja:", laminasPorHoja);
+
   let laminaActual = 0;
 
   while (laminaActual < cantidad) {
 
     let usadas = Math.min(laminasPorHoja, cantidad - laminaActual);
 
-    // 📍 CENTRADO DE TODAS LAS LÁMINAS EN LA HOJA
+    // 📍 CENTRADO
     let anchoUsado = colsHoja * anchoLam;
     let altoUsado = rowsHoja * altoLam;
 
@@ -89,7 +98,7 @@ async function generarPlantilla() {
       let baseX = offsetX + col * anchoLam;
       let baseY = offsetY + fila * altoLam;
 
-      // 🧩 GRID INTERNO DE LA LÁMINA
+      // 🧩 GRID INTERNO (9x6)
       let cols = 9;
       let rows = 6;
 
@@ -106,6 +115,7 @@ async function generarPlantilla() {
 
           doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
 
+          // 🔲 contorno
           doc.setDrawColor(0);
           doc.rect(x, y, cartaW, cartaH);
 
