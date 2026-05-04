@@ -2,35 +2,172 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Plantilla 54 Cartas</title>
+  <title>Láminas Lotería</title>
 </head>
 
 <body>
 
-  <h1>Plantilla 54 Cartas 🎴</h1>
-
-  <a href="../index.html">
-    <button>← Volver</button>
-  </a>
-
-  <hr>
+  <h1>Generador de Láminas 🎴</h1>
 
   <h2>Configuración</h2>
 
-  <label>Ancho total (cm):</label>
+  <label>Número de láminas:</label>
+  <input type="number" id="cantidad" value="1"><br><br>
+
+  <label>Ancho de lámina (cm):</label>
   <input type="number" id="ancho" value="30"><br><br>
 
-  <label>Alto total (cm):</label>
+  <label>Alto de lámina (cm):</label>
   <input type="number" id="alto" value="20"><br><br>
 
-  <!-- ✅ SIN onclick -->
+  <label>Orientación de hoja:</label>
+  <select id="orientacion">
+    <option value="portrait">Vertical</option>
+    <option value="landscape">Horizontal</option>
+  </select><br><br>
+
+  <label>Distribución de cartas:</label>
+  <select id="grid">
+    <option value="9x6">9 x 6</option>
+    <option value="6x9">6 x 9</option>
+  </select><br><br>
+
   <button id="btnPDF">Generar PDF</button>
 
   <!-- jsPDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 
-  <!-- Tu script -->
-  <script src="plantilla.js"></script>
+  <!-- Script -->
+  <script>
+  const { jsPDF } = window.jspdf;
+
+  const TOTAL = 54;
+  let imagenes = [];
+
+  function cargarImagenes() {
+    let promesas = [];
+
+    for (let i = 1; i <= TOTAL; i++) {
+      promesas.push(new Promise(resolve => {
+        let img = new Image();
+
+        // 🔁 AJUSTA ESTA RUTA SI CAMBIAS CARPETAS
+        img.src = `../imagenes/${i}.jpg`;
+
+        img.onload = () => resolve(img);
+        img.onerror = () => {
+          console.error("No carga:", img.src);
+          resolve(null);
+        };
+      }));
+    }
+
+    return Promise.all(promesas).then(imgs => {
+      imagenes = imgs.filter(i => i !== null);
+    });
+  }
+
+  async function generarPlantilla() {
+
+    await cargarImagenes();
+
+    if (imagenes.length !== 54) {
+      alert("Deben existir exactamente 54 imágenes.");
+      return;
+    }
+
+    // 🎛️ INPUTS
+    let cantidad = parseInt(document.getElementById("cantidad").value);
+    let orientacion = document.getElementById("orientacion").value;
+    let grid = document.getElementById("grid").value;
+
+    let anchoCm = parseFloat(document.getElementById("ancho").value);
+    let altoCm = parseFloat(document.getElementById("alto").value);
+
+    let anchoLam = anchoCm * 10;
+    let altoLam = altoCm * 10;
+
+    let colsCartas = grid === "9x6" ? 9 : 6;
+    let rowsCartas = grid === "9x6" ? 6 : 9;
+
+    const doc = new jsPDF({
+      orientation: orientacion,
+      unit: "mm",
+      format: "letter"
+    });
+
+    const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
+
+    const margen = 5;
+
+    const maxW = pageW - margen * 2;
+    const maxH = pageH - margen * 2;
+
+    // 🧠 CUÁNTAS LÁMINAS CABEN POR HOJA
+    let colsHoja = Math.floor(maxW / anchoLam);
+    let rowsHoja = Math.floor(maxH / altoLam);
+
+    if (colsHoja === 0 || rowsHoja === 0) {
+      alert("La lámina es demasiado grande para la hoja.");
+      return;
+    }
+
+    let laminasPorHoja = colsHoja * rowsHoja;
+
+    let laminaActual = 0;
+
+    while (laminaActual < cantidad) {
+
+      let usadas = Math.min(laminasPorHoja, cantidad - laminaActual);
+
+      let anchoUsado = colsHoja * anchoLam;
+      let altoUsado = rowsHoja * altoLam;
+
+      let offsetX = (pageW - anchoUsado) / 2;
+      let offsetY = (pageH - altoUsado) / 2;
+
+      for (let i = 0; i < usadas; i++) {
+
+        let col = i % colsHoja;
+        let fila = Math.floor(i / colsHoja);
+
+        let baseX = offsetX + col * anchoLam;
+        let baseY = offsetY + fila * altoLam;
+
+        let cartaW = anchoLam / colsCartas;
+        let cartaH = altoLam / rowsCartas;
+
+        let index = 0;
+
+        for (let f = 0; f < rowsCartas; f++) {
+          for (let c = 0; c < colsCartas; c++) {
+
+            let x = baseX + c * cartaW;
+            let y = baseY + f * cartaH;
+
+            doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
+
+            doc.setDrawColor(0);
+            doc.rect(x, y, cartaW, cartaH);
+
+            index++;
+          }
+        }
+      }
+
+      laminaActual += usadas;
+
+      if (laminaActual < cantidad) {
+        doc.addPage();
+      }
+    }
+
+    doc.save("laminas_loteria.pdf");
+  }
+
+  document.getElementById("btnPDF").addEventListener("click", generarPlantilla);
+  </script>
 
 </body>
 </html>
