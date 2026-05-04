@@ -52,7 +52,7 @@
         let img = new Image();
 
         // 🔁 AJUSTA ESTA RUTA SI CAMBIAS CARPETAS
-        img.src = `../imagenes/${i}.jpg`;
+        img.src = `imagenes/${i}.jpg`;
 
         img.onload = () => resolve(img);
         img.onerror = () => {
