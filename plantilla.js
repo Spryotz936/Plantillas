@@ -28,26 +28,21 @@ function cargarImagenes() {
 // 🚀 GENERAR PDF
 async function generarPlantilla() {
 
-  console.log("Iniciando generación...");
-
   await cargarImagenes();
 
-  console.log("Imágenes cargadas:", imagenes.length);
-
   if (imagenes.length !== 54) {
-    alert("Error: deben existir exactamente 54 imágenes.");
+    alert("Deben existir exactamente 54 imágenes.");
     return;
   }
 
-  // 📥 INPUTS
+  // 🎛️ INPUTS
   let cantidad = parseInt(document.getElementById("cantidad").value);
   let anchoCm = parseFloat(document.getElementById("ancho").value);
   let altoCm = parseFloat(document.getElementById("alto").value);
 
-  let anchoTotal = anchoCm * 10;
-  let altoTotal = altoCm * 10;
+  let anchoLam = anchoCm * 10;
+  let altoLam = altoCm * 10;
 
-  // 📄 PDF
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -57,60 +52,74 @@ async function generarPlantilla() {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // 📐 MÁRGENES
   const margen = 5;
-  const tolerancia = 0.5;
 
   const maxW = pageW - margen * 2;
   const maxH = pageH - margen * 2;
 
-  // 🔧 AJUSTE SOLO SI EXCEDE
-  if (anchoTotal > maxW + tolerancia || altoTotal > maxH + tolerancia) {
-    let escala = Math.min(maxW / anchoTotal, maxH / altoTotal);
-    anchoTotal *= escala;
-    altoTotal *= escala;
+  // 🧠 CUÁNTAS LÁMINAS CABEN POR HOJA
+  let colsHoja = Math.floor(maxW / anchoLam);
+  let rowsHoja = Math.floor(maxH / altoLam);
 
-    alert("El tamaño excedía la hoja. Se ajustó automáticamente.");
+  if (colsHoja === 0 || rowsHoja === 0) {
+    alert("La lámina es demasiado grande para la hoja.");
+    return;
   }
 
-  // 🧩 GRID
-  let cols = 9;
-  let rows = 6;
+  let laminasPorHoja = colsHoja * rowsHoja;
 
-  let cartaW = anchoTotal / cols;
-  let cartaH = altoTotal / rows;
+  let laminaActual = 0;
 
-  // 📍 CENTRADO
-  let offsetX = (pageW - anchoTotal) / 2;
-  let offsetY = (pageH - altoTotal) / 2;
+  while (laminaActual < cantidad) {
 
-  // 🔁 GENERAR LÁMINAS (UNA POR HOJA)
-  for (let lamina = 0; lamina < cantidad; lamina++) {
+    let usadas = Math.min(laminasPorHoja, cantidad - laminaActual);
 
-    // ➕ Nueva hoja (excepto la primera)
-    if (lamina > 0) {
-      doc.addPage();
-    }
+    // 📍 CENTRADO DE TODAS LAS LÁMINAS EN LA HOJA
+    let anchoUsado = colsHoja * anchoLam;
+    let altoUsado = rowsHoja * altoLam;
 
-    let index = 0;
+    let offsetX = (pageW - anchoUsado) / 2;
+    let offsetY = (pageH - altoUsado) / 2;
 
-    for (let fila = 0; fila < rows; fila++) {
-      for (let col = 0; col < cols; col++) {
+    for (let i = 0; i < usadas; i++) {
 
-        let x = offsetX + col * cartaW;
-        let y = offsetY + fila * cartaH;
+      let col = i % colsHoja;
+      let fila = Math.floor(i / colsHoja);
 
-        doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
+      let baseX = offsetX + col * anchoLam;
+      let baseY = offsetY + fila * altoLam;
 
-        doc.setDrawColor(0);
-        doc.rect(x, y, cartaW, cartaH);
+      // 🧩 GRID INTERNO DE LA LÁMINA
+      let cols = 9;
+      let rows = 6;
 
-        index++;
+      let cartaW = anchoLam / cols;
+      let cartaH = altoLam / rows;
+
+      let index = 0;
+
+      for (let f = 0; f < rows; f++) {
+        for (let c = 0; c < cols; c++) {
+
+          let x = baseX + c * cartaW;
+          let y = baseY + f * cartaH;
+
+          doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
+
+          doc.setDrawColor(0);
+          doc.rect(x, y, cartaW, cartaH);
+
+          index++;
+        }
       }
     }
-  }
 
-  console.log("Generando PDF...");
+    laminaActual += usadas;
+
+    if (laminaActual < cantidad) {
+      doc.addPage();
+    }
+  }
 
   doc.save("laminas_loteria.pdf");
 }
