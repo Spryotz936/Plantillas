@@ -68,7 +68,7 @@ async function generarPlantilla() {
   let altoLam = altoCm * 10;
 
   const margen = 3;
-  const separacion = 3;
+  const separacion = 5;
 
   // 🧠 Elegir mejor orientación
   let mejor = calcularMejorOrientacion(anchoLam, altoLam, separacion, margen);
