@@ -56,6 +56,7 @@ async function generarPlantilla() {
 
   // 📐 MÁRGENES (3 mm)
   const margen = 3;
+const separacion = 3; // 🔥 NUEVO
 
   const maxW = pageW - margen * 2;
   const maxH = pageH - margen * 2;
