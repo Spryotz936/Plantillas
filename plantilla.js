@@ -39,7 +39,15 @@ async function generarPlantilla() {
     return;
   }
 
-  // 📄 HORIZONTAL
+  // 📥 INPUTS
+  let cantidad = parseInt(document.getElementById("cantidad").value);
+  let anchoCm = parseFloat(document.getElementById("ancho").value);
+  let altoCm = parseFloat(document.getElementById("alto").value);
+
+  let anchoTotal = anchoCm * 10;
+  let altoTotal = altoCm * 10;
+
+  // 📄 PDF
   const doc = new jsPDF({
     orientation: "landscape",
     unit: "mm",
@@ -49,32 +57,23 @@ async function generarPlantilla() {
   const pageW = doc.internal.pageSize.getWidth();
   const pageH = doc.internal.pageSize.getHeight();
 
-  // 📏 INPUTS
-  let anchoCm = parseFloat(document.getElementById("ancho").value);
-  let altoCm = parseFloat(document.getElementById("alto").value);
-
-  let anchoTotal = anchoCm * 10;
-  let altoTotal = altoCm * 10;
-
-  // 📐 MARGEN DE SEGURIDAD (EVITA FALSOS AJUSTES)
-  const margen = 5; // mm por lado
-  const tolerancia = 0.5; // evita ajustes por decimales mínimos
+  // 📐 MÁRGENES
+  const margen = 5;
+  const tolerancia = 0.5;
 
   const maxW = pageW - margen * 2;
   const maxH = pageH - margen * 2;
 
-  // 🚫 SOLO AJUSTAR SI REALMENTE EXCEDE
+  // 🔧 AJUSTE SOLO SI EXCEDE
   if (anchoTotal > maxW + tolerancia || altoTotal > maxH + tolerancia) {
-
     let escala = Math.min(maxW / anchoTotal, maxH / altoTotal);
-
     anchoTotal *= escala;
     altoTotal *= escala;
 
     alert("El tamaño excedía la hoja. Se ajustó automáticamente.");
   }
 
-  // 🧩 GRID OPTIMIZADO PARA HORIZONTAL
+  // 🧩 GRID
   let cols = 9;
   let rows = 6;
 
@@ -82,30 +81,38 @@ async function generarPlantilla() {
   let cartaH = altoTotal / rows;
 
   // 📍 CENTRADO
-let offsetX = (pageW - anchoTotal) / 2;
-let offsetY = (pageH - altoTotal) / 2;
+  let offsetX = (pageW - anchoTotal) / 2;
+  let offsetY = (pageH - altoTotal) / 2;
 
-// 🖼️ DIBUJAR (9x6 REAL)
-let index = 0;
+  // 🔁 GENERAR LÁMINAS (UNA POR HOJA)
+  for (let lamina = 0; lamina < cantidad; lamina++) {
 
-for (let fila = 0; fila < rows; fila++) {
-  for (let col = 0; col < cols; col++) {
+    // ➕ Nueva hoja (excepto la primera)
+    if (lamina > 0) {
+      doc.addPage();
+    }
 
-    let x = offsetX + col * cartaW;
-    let y = offsetY + fila * cartaH;
+    let index = 0;
 
-    doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
+    for (let fila = 0; fila < rows; fila++) {
+      for (let col = 0; col < cols; col++) {
 
-    doc.setDrawColor(0);
-    doc.rect(x, y, cartaW, cartaH);
+        let x = offsetX + col * cartaW;
+        let y = offsetY + fila * cartaH;
 
-    index++;
+        doc.addImage(imagenes[index], "JPEG", x, y, cartaW, cartaH);
+
+        doc.setDrawColor(0);
+        doc.rect(x, y, cartaW, cartaH);
+
+        index++;
+      }
+    }
   }
-}
 
   console.log("Generando PDF...");
 
-  doc.save("plantilla_54_cartas_horizontal.pdf");
+  doc.save("laminas_loteria.pdf");
 }
 
 // ✅ EVENTO
